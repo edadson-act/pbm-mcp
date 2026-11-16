@@ -1,0 +1,3 @@
+operations:
+  - id: fetchIdCard
+  - id: digitalIdCard

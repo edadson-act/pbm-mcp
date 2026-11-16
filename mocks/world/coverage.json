@@ -1,0 +1,71 @@
+{
+  "mailService": {
+    "mailServiceProgram": "Optional mail",
+    "mandatoryMailApply": false,
+    "numberOfFills": "3",
+    "numberOfDays": "90",
+    "note": "Mail service is available and is not mandatory for this plan.",
+    "effectiveDate": "2026-01-01",
+    "endDate": "2026-12-31"
+  },
+  "consent": {
+    "consentType": "MAIL",
+    "consent": "N",
+    "status": "not-opted-in",
+    "fromDate": "2026-01-01",
+    "thruDate": "2026-12-31"
+  },
+  "priorAuth": {
+    "number": "PA-24011",
+    "status": "Pending",
+    "requestDate": "2026-09-20",
+    "drugId": "humira",
+    "stepDrug": "methotrexate",
+    "sourceSystem": "demo"
+  },
+  "priorAuthContact": {
+    "address1": "1 Demo Plaza",
+    "address2": "",
+    "city": "Austin",
+    "state": "TX",
+    "zip": "78701",
+    "phone": "800-555-0199",
+    "email": "pa-demo@example.com",
+    "companyName": "Demo Prior Authorization",
+    "contactType": "PHONE",
+    "department": "Prior Authorization"
+  },
+  "opportunity": {
+    "caseId": "CASE-24011",
+    "productType": "Specialty",
+    "productSubType": "Prior authorization",
+    "caseStatus": "Open",
+    "programName": "Specialty coverage review",
+    "status": "Open",
+    "drugId": "humira"
+  },
+  "savings": {
+    "recommendationId": "REC-1001",
+    "documentId": "DOC-1001",
+    "recommendationType": "GENERIC_ALTERNATIVE",
+    "fromClaimNumber": "RX1002001",
+    "fromDrugId": "lipitor",
+    "toDrugId": "atorvastatin",
+    "toPharmacyId": "river"
+  },
+  "accumulators": {
+    "phaseKey": "DEDUCTIBLE_MET",
+    "deductible": {
+      "startLimit": "0",
+      "endLimit": "500",
+      "balance": "0",
+      "spentToDate": "500"
+    },
+    "outOfPocket": {
+      "startLimit": "0",
+      "endLimit": "3000",
+      "balance": "2360",
+      "spentToDate": "640"
+    }
+  }
+}

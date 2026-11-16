@@ -1,0 +1,10 @@
+operations:
+  - id: drugsByAlphabet
+  - id: drugsByName
+  - id: drugResults
+  - id: drugDetails
+  - id: formulary
+  - id: therapeuticClasses
+  - id: therapeuticSubClassSummary
+  - id: pACriteria
+  - id: stepTherapyRules

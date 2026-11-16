@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pbm-mcp Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --paper: #faf8f2; --ink: #1a1a1a; --muted: #4b4d4f; --soft: #7b828f;
+  --accent: #ff612b; --link: #0c55b8; --navy: #002677;
+  --rule: rgba(26,26,26,0.12);
+  --font-sans: 'Optum Sans', 'Geist', system-ui, sans-serif; --font-serif: 'Instrument Serif', serif; --font-mono: 'Geist Mono', ui-monospace, monospace;
+}
+body { font-family: var(--font-sans); background: var(--paper); color: var(--ink); padding: 3rem 2rem; }
+.frame { max-width: 1200px; margin: 0 auto; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+h1 { font-family: var(--font-serif); font-size: clamp(1.75rem, 2.4vw + 0.75rem, 2.4rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; }
+.lede { color: var(--muted); max-width: 60ch; margin: 0.75rem 0 2.5rem; line-height: 1.5; }
+section { margin-bottom: 3.5rem; }
+h2 { font-family: var(--font-serif); font-weight: 400; font-size: 1.6rem; margin-bottom: 0.25rem; }
+h2 .lvl { color: var(--accent); }
+.sub { color: var(--muted); margin-bottom: 1.25rem; font-size: 0.95rem; }
+.diagram { overflow-x: auto; }
+svg { width: 100%; min-width: 900px; display: block; }
+.cards { display: grid; grid-template-columns: 1.1fr 1fr 0.9fr; gap: 1rem; margin-top: 1.5rem; }
+.card { background: #fff; border: 1px solid var(--rule); border-radius: 6px; padding: 1.25rem; }
+.card-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; }
+.card h3 { font-size: 0.95rem; font-weight: 600; }
+.card ul { list-style: none; font-size: 0.85rem; color: var(--muted); line-height: 1.5; }
+.card li { padding: 0.2rem 0; border-top: 1px solid var(--rule); }
+.card li:first-child { border-top: none; }
+code { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink); }
+.card-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.card-dot.accent { background: var(--accent); } .card-dot.link { background: var(--link); } .card-dot.ink { background: var(--ink); }
+footer { font-family: var(--font-mono); font-size: 0.7rem; color: var(--soft); border-top: 1px solid var(--rule); padding-top: 1rem; }
+@media (max-width: 760px) { .cards { grid-template-columns: 1fr; } body { padding: 2rem 1rem; } }
+</style>
+</head>
+<body>
+<div class="frame">
+  <p class="eyebrow">Architecture · pbm-mcp v0.1.0</p>
+  <h1>pbm-mcp: Pharmacy Benefit APIs as MCP tools</h1>
+  <p class="lede">A localhost FastMCP server that turns twelve PBM GraphQL/OpenAPI specs into namespaced, allowlisted tools, and calls the upstream APIs with per-domain credentials.</p>
+
+  <section>
+    <p class="eyebrow">Level 1 · System context</p>
+    <h2><span class="lvl">L1</span> — Who talks to pbm-mcp</h2>
+    <p class="sub">One MCP client, one local server, twelve upstream domains. pbm-mock swaps in for the live hosts during development.</p>
+    <div class="diagram"><svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pbm-l1-title pbm-l1-desc">
+<title id="pbm-l1-title">pbm-mcp system context (L1)</title>
+<desc id="pbm-l1-desc">System context showing an MCP client calling the pbm-mcp server, which loads specs and allowlists from disk and calls twelve PBM GraphQL APIs, or the local pbm-mock in development.</desc>
+<defs><marker id="arrow-pbm-l1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4b4d4f"/></marker><marker id="arrow-accent-pbm-l1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff612b"/></marker><marker id="arrow-link-pbm-l1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0c55b8"/></marker></defs>
+<rect width="100%" height="100%" fill="#faf8f2"/>
+<path d="M220,176 H360" fill="none" stroke="#4b4d4f" stroke-width="1.2" marker-end="url(#arrow-pbm-l1)"/>
+<rect x="254" y="156" width="68" height="12" rx="2" fill="#faf8f2"/><text x="288" y="165" fill="#7b828f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">MCP · HTTP</text>
+<path d="M600,176 H700" fill="none" stroke="#0c55b8" stroke-width="1.2" marker-end="url(#arrow-link-pbm-l1)"/>
+<rect x="622" y="156" width="52" height="12" rx="2" fill="#faf8f2"/><text x="648" y="165" fill="#7b828f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">GRAPHQL</text>
+<path d="M480,336 V228" fill="none" stroke="#4b4d4f" stroke-width="1.2" marker-end="url(#arrow-pbm-l1)"/>
+<rect x="488" y="278" width="100" height="12" rx="2" fill="#faf8f2"/><text x="538" y="287" fill="#7b828f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">LOAD AT STARTUP</text>
+<path d="M600,208 H632 Q640,208 640,216 V368 Q640,376 648,376 H700" fill="none" stroke="#4b4d4f" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-pbm-l1)"/>
+<rect x="568" y="294" width="64" height="12" rx="2" fill="#faf8f2"/><text x="600" y="303" fill="#7b828f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">LOCAL DEV</text>
+<rect x="40" y="136" width="180" height="80" rx="6" fill="#faf8f2"/>
+<rect x="40" y="136" width="180" height="80" rx="6" fill="rgba(75,77,79,0.10)" stroke="#7b828f" stroke-width="1"/>
+<rect x="48" y="144" width="36" height="12" rx="2" fill="none" stroke="#4b4d4f" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="66" y="153" fill="#4b4d4f" fill-opacity="0.85" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">USER</text>
+<text x="130" y="172" fill="#1a1a1a" font-size="12" font-weight="600" font-family="'Optum Sans', 'Geist', system-ui, sans-serif" text-anchor="middle">MCP client</text>
+<text x="130" y="188" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">Cursor · AI agent</text>
+<text x="130" y="202" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">streamable HTTP</text>
+<rect x="360" y="124" width="240" height="104" rx="6" fill="#faf8f2"/>
+<rect x="360" y="124" width="240" height="104" rx="6" fill="rgba(255,97,43,0.08)" stroke="#ff612b" stroke-width="1"/>
+<rect x="368" y="132" width="72" height="12" rx="2" fill="none" stroke="#c44116" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="404" y="141" fill="#c44116" fill-opacity="0.85" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">MCP SERVER</text>
+<text x="480" y="168" fill="#1a1a1a" font-size="12" font-weight="600" font-family="'Optum Sans', 'Geist', system-ui, sans-serif" text-anchor="middle">pbm-mcp</text>
+<text x="480" y="184" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">FastMCP · 127.0.0.1:8000/mcp</text>
+<text x="480" y="198" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">12 namespaces · allowlisted tools</text>
+<text x="480" y="212" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">upstream auth per domain</text>
+<rect x="700" y="60" width="260" height="232" rx="6" fill="#faf8f2"/>
+<rect x="700" y="60" width="260" height="232" rx="6" fill="rgba(26,26,26,0.03)" stroke="rgba(26,26,26,0.30)" stroke-width="1"/>
+<rect x="708" y="68" width="36" height="12" rx="2" fill="none" stroke="#4b4d4f" stroke-opacity="0.4" stroke-width="0.8"/><text x="726" y="77" fill="#4b4d4f" fill-opacity="0.85" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">EXT</text>
+<text x="830" y="100" fill="#1a1a1a" font-size="12" font-weight="600" font-family="'Optum Sans', 'Geist', system-ui, sans-serif" text-anchor="middle">PBM GraphQL APIs</text>
+<text x="830" y="114" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">PBM_&lt;DOMAIN&gt;_BASE_URL</text>
+<rect x="716" y="124" width="108" height="16" rx="2" fill="#ffffff" stroke="rgba(26,26,26,0.14)" stroke-width="0.8"/><text x="770" y="135" fill="#4b4d4f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">health-opportunity</text>
+<rect x="836" y="124" width="108" height="16" rx="2" fill="#ffffff" stroke="rgba(26,26,26,0.14)" stroke-width="0.8"/><text x="890" y="135" fill="#4b4d4f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">member-profile</text>
+<rect x="716" y="148" width="108" height="16" rx="2" fill="#ffffff" stroke="rgba(26,26,26,0.14)" stroke-width="0.8"/><text x="770" y="159" fill="#4b4d4f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">drug-search</text>
+<rect x="836" y="148" width="108" height="16" rx="2" fill="#ffffff" stroke="rgba(26,26,26,0.14)" stroke-width="0.8"/><text x="890" y="159" fill="#4b4d4f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">formulary</text>
+<rect x="716" y="172" width="108" height="16" rx="2" fill="#ffffff" stroke="rgba(26,26,26,0.14)" stroke-width="0.8"/><text x="770" y="183" fill="#4b4d4f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">claim-history</text>
+<rect x="836" y="172" width="108" height="16" rx="2" fill="#ffffff" stroke="rgba(26,26,26,0.14)" stroke-width="0.8"/><text x="890" y="183" fill="#4b4d4f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">savings-center</text>
+<rect x="716" y="196" width="108" height="16" rx="2" fill="#ffffff" stroke="rgba(26,26,26,0.14)" stroke-width="0.8"/><text x="770" y="207" fill="#4b4d4f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">pharmacy-search</text>
+<rect x="836" y="196" width="108" height="16" rx="2" fill="#ffffff" stroke="rgba(26,26,26,0.14)" stroke-width="0.8"/><text x="890" y="207" fill="#4b4d4f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">accumulators</text>
+<rect x="716" y="220" width="108" height="16" rx="2" fill="#ffffff" stroke="rgba(26,26,26,0.14)" stroke-width="0.8"/><text x="770" y="231" fill="#4b4d4f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">prior-auth</text>
+<rect x="836" y="220" width="108" height="16" rx="2" fill="#ffffff" stroke="rgba(26,26,26,0.14)" stroke-width="0.8"/><text x="890" y="231" fill="#4b4d4f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">drug-pricing</text>
+<rect x="716" y="244" width="108" height="16" rx="2" fill="#ffffff" stroke="rgba(26,26,26,0.14)" stroke-width="0.8"/><text x="770" y="255" fill="#4b4d4f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">id-card</text>
+<rect x="836" y="244" width="108" height="16" rx="2" fill="#ffffff" stroke="rgba(26,26,26,0.14)" stroke-width="0.8"/><text x="890" y="255" fill="#4b4d4f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">member-consent</text>
+<rect x="360" y="336" width="240" height="80" rx="6" fill="#faf8f2"/>
+<rect x="360" y="336" width="240" height="80" rx="6" fill="rgba(26,26,26,0.05)" stroke="#4b4d4f" stroke-width="1"/>
+<rect x="368" y="344" width="44" height="12" rx="2" fill="none" stroke="#4b4d4f" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="390" y="353" fill="#4b4d4f" fill-opacity="0.85" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">FILES</text>
+<text x="480" y="372" fill="#1a1a1a" font-size="12" font-weight="600" font-family="'Optum Sans', 'Geist', system-ui, sans-serif" text-anchor="middle">Specs · allowlists · .env</text>
+<text x="480" y="388" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">specs/&lt;domain&gt;/*.yaml</text>
+<text x="480" y="402" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">allowlists/&lt;domain&gt;.yaml</text>
+<rect x="700" y="336" width="260" height="80" rx="6" fill="#faf8f2"/>
+<rect x="700" y="336" width="260" height="80" rx="6" fill="rgba(26,26,26,0.02)" stroke="rgba(26,26,26,0.35)" stroke-width="1" stroke-dasharray="4,3"/>
+<rect x="708" y="344" width="32" height="12" rx="2" fill="none" stroke="#4b4d4f" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="724" y="353" fill="#4b4d4f" fill-opacity="0.85" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">DEV</text>
+<text x="830" y="372" fill="#1a1a1a" font-size="12" font-weight="600" font-family="'Optum Sans', 'Geist', system-ui, sans-serif" text-anchor="middle">pbm-mock</text>
+<text x="830" y="388" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">127.0.0.1:8001/v1/&lt;domain&gt;/graphql</text>
+<text x="830" y="402" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">mocks/world · fixtures</text>
+<text x="40" y="264" fill="#4b4d4f" font-size="14" font-style="italic" font-family="'Instrument Serif', serif">Binds localhost only —</text>
+<text x="40" y="282" fill="#4b4d4f" font-size="14" font-style="italic" font-family="'Instrument Serif', serif">/mcp has no inbound auth in v1.</text>
+<line x1="40" y1="456" x2="960" y2="456" stroke="rgba(26,26,26,0.10)" stroke-width="0.8"/>
+<text x="40" y="476" fill="#4b4d4f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
+<rect x="112" y="466" width="24" height="12" rx="2" fill="rgba(255,97,43,0.08)" stroke="#ff612b" stroke-width="1"/>
+<text x="144" y="476" fill="#4b4d4f" font-size="9" font-family="'Optum Sans', 'Geist', system-ui, sans-serif">Focal system</text>
+<rect x="240" y="466" width="24" height="12" rx="2" fill="rgba(75,77,79,0.10)" stroke="#7b828f" stroke-width="1"/>
+<text x="272" y="476" fill="#4b4d4f" font-size="9" font-family="'Optum Sans', 'Geist', system-ui, sans-serif">Client</text>
+<rect x="336" y="466" width="24" height="12" rx="2" fill="rgba(26,26,26,0.05)" stroke="#4b4d4f" stroke-width="1"/>
+<text x="368" y="476" fill="#4b4d4f" font-size="9" font-family="'Optum Sans', 'Geist', system-ui, sans-serif">Config</text>
+<rect x="432" y="466" width="24" height="12" rx="2" fill="rgba(26,26,26,0.03)" stroke="rgba(26,26,26,0.30)" stroke-width="1"/>
+<text x="464" y="476" fill="#4b4d4f" font-size="9" font-family="'Optum Sans', 'Geist', system-ui, sans-serif">External API</text>
+<rect x="560" y="466" width="24" height="12" rx="2" fill="rgba(26,26,26,0.02)" stroke="rgba(26,26,26,0.35)" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="592" y="476" fill="#4b4d4f" font-size="9" font-family="'Optum Sans', 'Geist', system-ui, sans-serif">Local stand-in</text>
+<line x1="700" y1="472" x2="724" y2="472" stroke="#0c55b8" stroke-width="1.2"/>
+<text x="732" y="476" fill="#4b4d4f" font-size="9" font-family="'Optum Sans', 'Geist', system-ui, sans-serif">Upstream HTTP</text>
+<line x1="832" y1="472" x2="856" y2="472" stroke="#4b4d4f" stroke-width="1.2" stroke-dasharray="4,3"/>
+<text x="864" y="476" fill="#4b4d4f" font-size="9" font-family="'Optum Sans', 'Geist', system-ui, sans-serif">Dev alternative</text>
+</svg></div>
+    <div class="cards"><div class="card"><p class="eyebrow">Mount rule</p><div class="card-header"><span class="card-dot accent"></span><h3>A domain mounts only when complete</h3></div><ul><li>Spec present in <code>specs/&lt;domain&gt;/</code> <em>and</em> <code>PBM_&lt;DOMAIN&gt;_BASE_URL</code> set</li><li>Both OpenAPI and GraphQL in one domain → skipped</li><li>No spec → process still starts, zero tools</li></ul></div><div class="card"><p class="eyebrow">Upstream auth</p><div class="card-header"><span class="card-dot link"></span><h3>Per-domain credential strategy</h3></div><ul><li><code>none</code>, <code>api-key</code>, <code>bearer-env</code>, <code>forward</code></li><li><code>forward</code> copies the inbound MCP <code>Authorization</code> header</li><li><code>client-credentials</code> is a slot only — domain skipped</li></ul></div><div class="card"><p class="eyebrow">Member data</p><div class="card-header"><span class="card-dot ink"></span><h3>Bodies never logged</h3></div><ul><li>Logs: domain, operation, status, latency</li><li>URLs suppressed (can carry member ids)</li><li>Errors truncated to 500 chars, secrets redacted</li></ul></div></div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Level 2 · Components</p>
+    <h2><span class="lvl">L2</span> — Inside the server</h2>
+    <p class="sub">Startup builds one sub-server per domain behind the allowlist gate; each tool call then flows left to right to the upstream API.</p>
+    <div class="diagram"><svg viewBox="0 0 1128 588" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pbm-l2-title pbm-l2-desc">
+<title id="pbm-l2-title">pbm-mcp components (L2)</title>
+<desc id="pbm-l2-desc">Component view of pbm-mcp: at startup, settings and the domain catalog feed spec loaders and an allowlist gate that registers tools; per tool call, the parent server routes through UpstreamGuard to a domain tool and an authenticated, logged HTTP client that calls the PBM API.</desc>
+<defs><marker id="arrow-pbm-l2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4b4d4f"/></marker><marker id="arrow-accent-pbm-l2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff612b"/></marker><marker id="arrow-link-pbm-l2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0c55b8"/></marker></defs>
+<rect width="100%" height="100%" fill="#faf8f2"/>
+<rect x="200" y="88" width="544" height="144" rx="8" fill="rgba(0,38,119,0.025)" stroke="rgba(0,38,119,0.16)" stroke-width="0.8"/><rect x="208" y="92" width="72" height="12" rx="2" fill="#faf8f2"/><text x="244" y="101" fill="rgba(0,38,119,0.6)" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">AT STARTUP</text>
+<rect x="200" y="324" width="728" height="140" rx="8" fill="rgba(0,38,119,0.025)" stroke="rgba(0,38,119,0.16)" stroke-width="0.8"/><rect x="208" y="328" width="92" height="12" rx="2" fill="#faf8f2"/><text x="254" y="337" fill="rgba(0,38,119,0.6)" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">PER TOOL CALL</text>
+<path d="M352,164 H408" fill="none" stroke="#4b4d4f" stroke-width="1.2" marker-end="url(#arrow-pbm-l2)"/>
+<path d="M536,164 H592" fill="none" stroke="#4b4d4f" stroke-width="1.2" marker-end="url(#arrow-pbm-l2)"/>
+<path d="M656,208 V356" fill="none" stroke="#ff612b" stroke-width="1.2" marker-end="url(#arrow-accent-pbm-l2)"/>
+<rect x="664" y="278" width="100" height="12" rx="2" fill="#faf8f2"/><text x="714" y="287" fill="#7b828f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">REGISTERS TOOLS</text>
+<path d="M320,120 V72 Q320,64 328,64 H832 Q840,64 840,72 V356" fill="none" stroke="#4b4d4f" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-pbm-l2)"/>
+<rect x="516" y="44" width="128" height="12" rx="2" fill="#faf8f2"/><text x="580" y="53" fill="#7b828f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">AUTH MODE · BASE_URL</text>
+<path d="M168,400 H224" fill="none" stroke="#4b4d4f" stroke-width="1.2" marker-end="url(#arrow-pbm-l2)"/>
+<rect x="180" y="380" width="32" height="12" rx="2" fill="#faf8f2"/><text x="196" y="389" fill="#7b828f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">CALL</text>
+<path d="M352,400 H408" fill="none" stroke="#4b4d4f" stroke-width="1.2" marker-end="url(#arrow-pbm-l2)"/>
+<rect x="360" y="380" width="40" height="12" rx="2" fill="#faf8f2"/><text x="380" y="389" fill="#7b828f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">ROUTE</text>
+<path d="M536,400 H592" fill="none" stroke="#4b4d4f" stroke-width="1.2" marker-end="url(#arrow-pbm-l2)"/>
+<rect x="548" y="380" width="32" height="12" rx="2" fill="#faf8f2"/><text x="564" y="389" fill="#7b828f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">WRAP</text>
+<path d="M720,400 H776" fill="none" stroke="#4b4d4f" stroke-width="1.2" marker-end="url(#arrow-pbm-l2)"/>
+<rect x="732" y="380" width="32" height="12" rx="2" fill="#faf8f2"/><text x="748" y="389" fill="#7b828f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">SEND</text>
+<path d="M904,400 H960" fill="none" stroke="#0c55b8" stroke-width="1.2" marker-end="url(#arrow-link-pbm-l2)"/>
+<rect x="916" y="380" width="32" height="12" rx="2" fill="#faf8f2"/><text x="932" y="389" fill="#7b828f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">POST</text>
+<path d="M472,444 V488 Q472,496 464,496 H112 Q104,496 104,488 V444" fill="none" stroke="#4b4d4f" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-pbm-l2)"/>
+<rect x="242" y="476" width="92" height="12" rx="2" fill="#faf8f2"/><text x="288" y="485" fill="#7b828f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">REDACTED ERROR</text>
+<rect x="224" y="120" width="128" height="88" rx="6" fill="#faf8f2"/>
+<rect x="224" y="120" width="128" height="88" rx="6" fill="rgba(26,26,26,0.05)" stroke="#4b4d4f" stroke-width="1"/>
+<rect x="232" y="128" width="32" height="12" rx="2" fill="none" stroke="#4b4d4f" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="248" y="137" fill="#4b4d4f" fill-opacity="0.85" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">CFG</text>
+<text x="288" y="160" fill="#1a1a1a" font-size="12" font-weight="600" font-family="'Optum Sans', 'Geist', system-ui, sans-serif" text-anchor="middle">Settings · catalog</text>
+<text x="288" y="176" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">config.py · .env</text>
+<text x="288" y="190" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">12 domain ids</text>
+<rect x="408" y="120" width="128" height="88" rx="6" fill="#faf8f2"/>
+<rect x="408" y="120" width="128" height="88" rx="6" fill="#ffffff" stroke="#1a1a1a" stroke-width="1"/>
+<rect x="416" y="128" width="36" height="12" rx="2" fill="none" stroke="#1a1a1a" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="434" y="137" fill="#1a1a1a" fill-opacity="0.85" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">LOAD</text>
+<text x="472" y="160" fill="#1a1a1a" font-size="12" font-weight="600" font-family="'Optum Sans', 'Geist', system-ui, sans-serif" text-anchor="middle">Spec loaders</text>
+<text x="472" y="176" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">openapi · graphql</text>
+<text x="472" y="190" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">introspection</text>
+<rect x="592" y="120" width="128" height="88" rx="6" fill="#faf8f2"/>
+<rect x="592" y="120" width="128" height="88" rx="6" fill="rgba(255,97,43,0.08)" stroke="#ff612b" stroke-width="1"/>
+<rect x="600" y="128" width="36" height="12" rx="2" fill="none" stroke="#c44116" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="618" y="137" fill="#c44116" fill-opacity="0.85" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">GATE</text>
+<text x="656" y="160" fill="#1a1a1a" font-size="12" font-weight="600" font-family="'Optum Sans', 'Geist', system-ui, sans-serif" text-anchor="middle">Allowlist gate</text>
+<text x="656" y="176" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">allowlists/*.yaml</text>
+<text x="656" y="190" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">deny by default</text>
+<rect x="40" y="356" width="128" height="88" rx="6" fill="#faf8f2"/>
+<rect x="40" y="356" width="128" height="88" rx="6" fill="rgba(75,77,79,0.10)" stroke="#7b828f" stroke-width="1"/>
+<rect x="48" y="364" width="36" height="12" rx="2" fill="none" stroke="#4b4d4f" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="66" y="373" fill="#4b4d4f" fill-opacity="0.85" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">USER</text>
+<text x="104" y="396" fill="#1a1a1a" font-size="12" font-weight="600" font-family="'Optum Sans', 'Geist', system-ui, sans-serif" text-anchor="middle">MCP client</text>
+<text x="104" y="412" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">tools/call</text>
+<text x="104" y="426" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">{ns}_{operation}</text>
+<rect x="224" y="356" width="128" height="88" rx="6" fill="#faf8f2"/>
+<rect x="224" y="356" width="128" height="88" rx="6" fill="#ffffff" stroke="#1a1a1a" stroke-width="1"/>
+<rect x="232" y="364" width="32" height="12" rx="2" fill="none" stroke="#1a1a1a" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="248" y="373" fill="#1a1a1a" fill-opacity="0.85" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">APP</text>
+<text x="288" y="396" fill="#1a1a1a" font-size="12" font-weight="600" font-family="'Optum Sans', 'Geist', system-ui, sans-serif" text-anchor="middle">pbm-mcp parent</text>
+<text x="288" y="412" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">FastMCP :8000/mcp</text>
+<text x="288" y="426" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">mounts namespaces</text>
+<rect x="408" y="356" width="128" height="88" rx="6" fill="#faf8f2"/>
+<rect x="408" y="356" width="128" height="88" rx="6" fill="#ffffff" stroke="#1a1a1a" stroke-width="1"/>
+<rect x="416" y="364" width="24" height="12" rx="2" fill="none" stroke="#1a1a1a" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="428" y="373" fill="#1a1a1a" fill-opacity="0.85" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">MW</text>
+<text x="472" y="396" fill="#1a1a1a" font-size="12" font-weight="600" font-family="'Optum Sans', 'Geist', system-ui, sans-serif" text-anchor="middle">UpstreamGuard</text>
+<text x="472" y="412" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">http.py · redact.py</text>
+<text x="472" y="426" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">op name · safe errs</text>
+<rect x="592" y="356" width="128" height="88" rx="6" fill="#faf8f2"/>
+<rect x="592" y="356" width="128" height="88" rx="6" fill="#ffffff" stroke="#1a1a1a" stroke-width="1"/>
+<rect x="600" y="364" width="36" height="12" rx="2" fill="none" stroke="#1a1a1a" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="618" y="373" fill="#1a1a1a" fill-opacity="0.85" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">TOOL</text>
+<text x="656" y="396" fill="#1a1a1a" font-size="12" font-weight="600" font-family="'Optum Sans', 'Geist', system-ui, sans-serif" text-anchor="middle">Domain tool</text>
+<text x="656" y="412" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">GraphQL op / route</text>
+<text x="656" y="426" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">×12 sub-servers</text>
+<rect x="776" y="356" width="128" height="88" rx="6" fill="#faf8f2"/>
+<rect x="776" y="356" width="128" height="88" rx="6" fill="#ffffff" stroke="#1a1a1a" stroke-width="1"/>
+<rect x="784" y="364" width="36" height="12" rx="2" fill="none" stroke="#1a1a1a" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="802" y="373" fill="#1a1a1a" fill-opacity="0.85" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">HTTP</text>
+<text x="840" y="396" fill="#1a1a1a" font-size="12" font-weight="600" font-family="'Optum Sans', 'Geist', system-ui, sans-serif" text-anchor="middle">Upstream client</text>
+<text x="840" y="412" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">httpx2 + auth/*</text>
+<text x="840" y="426" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">LoggingTransport</text>
+<rect x="960" y="356" width="128" height="88" rx="6" fill="#faf8f2"/>
+<rect x="960" y="356" width="128" height="88" rx="6" fill="rgba(26,26,26,0.03)" stroke="rgba(26,26,26,0.30)" stroke-width="1"/>
+<rect x="968" y="364" width="32" height="12" rx="2" fill="none" stroke="#4b4d4f" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="984" y="373" fill="#4b4d4f" fill-opacity="0.85" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">EXT</text>
+<text x="1024" y="396" fill="#1a1a1a" font-size="12" font-weight="600" font-family="'Optum Sans', 'Geist', system-ui, sans-serif" text-anchor="middle">PBM API</text>
+<text x="1024" y="412" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">/v1/&lt;domain&gt;/graphql</text>
+<text x="1024" y="426" fill="#4b4d4f" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">or pbm-mock</text>
+<line x1="40" y1="544" x2="1088" y2="544" stroke="rgba(26,26,26,0.10)" stroke-width="0.8"/>
+<text x="40" y="564" fill="#4b4d4f" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
+<rect x="112" y="554" width="24" height="12" rx="2" fill="rgba(255,97,43,0.08)" stroke="#ff612b" stroke-width="1"/>
+<text x="144" y="564" fill="#4b4d4f" font-size="9" font-family="'Optum Sans', 'Geist', system-ui, sans-serif">Focal control</text>
+<rect x="244" y="554" width="24" height="12" rx="2" fill="#ffffff" stroke="#1a1a1a" stroke-width="1"/>
+<text x="276" y="564" fill="#4b4d4f" font-size="9" font-family="'Optum Sans', 'Geist', system-ui, sans-serif">Component</text>
+<rect x="356" y="554" width="24" height="12" rx="2" fill="rgba(26,26,26,0.05)" stroke="#4b4d4f" stroke-width="1"/>
+<text x="388" y="564" fill="#4b4d4f" font-size="9" font-family="'Optum Sans', 'Geist', system-ui, sans-serif">Config</text>
+<rect x="452" y="554" width="24" height="12" rx="2" fill="rgba(75,77,79,0.10)" stroke="#7b828f" stroke-width="1"/>
+<text x="484" y="564" fill="#4b4d4f" font-size="9" font-family="'Optum Sans', 'Geist', system-ui, sans-serif">Client</text>
+<rect x="548" y="554" width="24" height="12" rx="2" fill="rgba(26,26,26,0.03)" stroke="rgba(26,26,26,0.30)" stroke-width="1"/>
+<text x="580" y="564" fill="#4b4d4f" font-size="9" font-family="'Optum Sans', 'Geist', system-ui, sans-serif">External</text>
+<line x1="652" y1="560" x2="676" y2="560" stroke="#ff612b" stroke-width="1.2"/>
+<text x="684" y="564" fill="#4b4d4f" font-size="9" font-family="'Optum Sans', 'Geist', system-ui, sans-serif">Tool registration</text>
+<line x1="808" y1="560" x2="832" y2="560" stroke="#0c55b8" stroke-width="1.2"/>
+<text x="840" y="564" fill="#4b4d4f" font-size="9" font-family="'Optum Sans', 'Geist', system-ui, sans-serif">Upstream HTTP</text>
+<line x1="940" y1="560" x2="964" y2="560" stroke="#4b4d4f" stroke-width="1.2" stroke-dasharray="4,3"/>
+<text x="972" y="564" fill="#4b4d4f" font-size="9" font-family="'Optum Sans', 'Geist', system-ui, sans-serif">Config / error path</text>
+</svg></div>
+    <div class="cards"><div class="card"><p class="eyebrow">Allowlist gate</p><div class="card-header"><span class="card-dot accent"></span><h3>Deny by default</h3></div><ul><li>Missing / empty allowlist → zero tools</li><li>Mutations, non-GET routes, <code>orderIdCard</code>, <code>saveConsent</code> need <code>write: true</code></li><li>Subscriptions never exposed</li></ul></div><div class="card"><p class="eyebrow">Request path</p><div class="card-header"><span class="card-dot link"></span><h3>One tool call, end to end</h3></div><ul><li>Tool name <code>{namespace}_{operation}</code> routes to its sub-server</li><li>UpstreamGuard tags the operation for logs and sanitises errors</li><li>LoggingTransport times every upstream request</li></ul></div><div class="card"><p class="eyebrow">Startup skips</p><div class="card-header"><span class="card-dot ink"></span><h3>Logged, never fatal</h3></div><ul><li><code>no_spec</code>, <code>no_base_url</code>, <code>both_openapi_and_graphql</code></li><li><code>auth_not_implemented</code>, <code>auth_not_configured</code></li><li><code>invalid_spec</code> on any loader exception</li></ul></div></div>
+  </section>
+
+  <footer>Source: pbm-mcp/src/pbm_mcp · server.py, catalog.py, config.py, allowlist.py, *_loader.py, introspection.py, http.py, redact.py, auth/, mock/</footer>
+</div>
+</body>
+</html>

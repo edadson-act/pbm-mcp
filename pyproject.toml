@@ -1,0 +1,37 @@
+[project]
+name = "pbm-mcp"
+version = "0.1.0"
+description = "MCP server for Pharmacy Benefit Management APIs"
+authors = [
+    { name = "Ebenezer Dadson", email = "ebenezer.dadson@aurisai.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp>=2.5",
+    "graphql-core>=3.2",
+    "httpx2>=2.16.0",
+    "pydantic-settings>=2",
+    "pyyaml>=6.0.3",
+    "starlette>=0.40",
+    "uvicorn>=0.32",
+]
+
+[project.scripts]
+pbm-mcp = "pbm_mcp.server:main"
+pbm-mock = "pbm_mcp.mock.app:main"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.4.1.post1",
+]

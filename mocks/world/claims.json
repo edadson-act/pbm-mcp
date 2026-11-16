@@ -1,0 +1,34 @@
+[
+  {
+    "claimNumber": "RX1002001",
+    "fillDate": "2026-10-02",
+    "processedDate": "2026-10-03",
+    "daysSupply": 30,
+    "quantity": 30,
+    "rxNumber": "8801001",
+    "drugId": "lipitor",
+    "pharmacyId": "oak",
+    "patientPaid": 47.0,
+    "planPaid": 210.0,
+    "amountBilled": 257.0,
+    "status": "Paid",
+    "rejected": false
+  },
+  {
+    "claimNumber": "RX1002002",
+    "fillDate": "2026-09-15",
+    "processedDate": "2026-09-15",
+    "daysSupply": 28,
+    "quantity": 2,
+    "rxNumber": "8801002",
+    "drugId": "humira",
+    "pharmacyId": "oak",
+    "patientPaid": 6800.0,
+    "planPaid": 0.0,
+    "amountBilled": 6800.0,
+    "status": "Rejected",
+    "rejected": true,
+    "rejectCode": "75",
+    "rejectDescription": "Prior authorization required"
+  }
+]

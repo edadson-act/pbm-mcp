@@ -1,0 +1,4 @@
+operations:
+  - id: defaultPharmacy
+  - id: plans
+  - id: pharmacySearch

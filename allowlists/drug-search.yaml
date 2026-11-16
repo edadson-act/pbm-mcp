@@ -1,0 +1,4 @@
+operations:
+  - id: drugForms
+  - id: drugSearch
+  - id: drugInfo

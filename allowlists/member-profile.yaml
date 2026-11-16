@@ -1,0 +1,4 @@
+operations:
+  - id: userProfile
+  - id: searchUserProfile
+  - id: session

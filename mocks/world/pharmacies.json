@@ -1,0 +1,30 @@
+[
+  {
+    "id": "oak",
+    "npi": "1000000001",
+    "ncpdp": "1000001",
+    "name": "Oak Street Pharmacy",
+    "address1": "100 Demo Oak Street",
+    "city": "Austin",
+    "county": "Travis",
+    "state": "TX",
+    "zip": "78701",
+    "phone": "512-555-0110",
+    "preferred": false,
+    "distance": 1.4
+  },
+  {
+    "id": "river",
+    "npi": "1000000002",
+    "ncpdp": "1000002",
+    "name": "River City Pharmacy",
+    "address1": "200 Demo River Avenue",
+    "city": "Austin",
+    "county": "Travis",
+    "state": "TX",
+    "zip": "78701",
+    "phone": "512-555-0120",
+    "preferred": true,
+    "distance": 0.6
+  }
+]
