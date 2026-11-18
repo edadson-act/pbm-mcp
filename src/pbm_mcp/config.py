@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     api_key: str = ""
     api_key_header: str = "x-api-key"
     bearer_token: str = ""
+    mcp_bearer_token: str = ""
     token_url: str = ""
     client_id: str = ""
     client_secret: str = ""

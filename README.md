@@ -2,7 +2,7 @@
 
 MCP server for the Pharmacy Benefit Management APIs. It speaks streamable HTTP on `http://127.0.0.1:8000/mcp`. Tools are generated from OpenAPI or GraphQL files you drop in the repo. An allowlist decides which operations are actually exposed.
 
-The server binds to localhost and does not authenticate callers of `/mcp`. Do not expose the port beyond your machine until endpoint auth is configured. The `build_server(..., mcp_auth=)` argument is the slot for that.
+The server binds to localhost. Set `PBM_MCP_BEARER_TOKEN` before publishing the port with Tailscale Funnel. Callers send that secret as `Authorization: Bearer`. With the variable empty, `/mcp` accepts any caller who can reach the port.
 
 ## Run
 
@@ -86,6 +86,41 @@ operations:
 A missing or empty allowlist mounts the domain with zero tools. `GET`, `HEAD`, and `OPTIONS`, and GraphQL queries, can be listed by id. `POST`, `PUT`, `PATCH`, `DELETE`, and GraphQL mutations stay hidden unless the entry sets `write: true`. `orderIdCard` and `saveConsent` are queries in the schema and stay hidden the same way, because each one changes member state. Subscriptions are never exposed.
 
 Tool names are `{namespace}_{operation}`, for example `claim_history_listClaims`.
+
+## Endpoint auth
+
+`PBM_MCP_BEARER_TOKEN` is a shared secret for callers of `/mcp`. It is separate from `PBM_BEARER_TOKEN`, which this server sends upstream. The value is the secret only, at least 16 characters:
+
+```bash
+openssl rand -hex 32
+```
+
+Put that value in `.env`. A request without `Authorization: Bearer <secret>` receives HTTP 401. The token is not written to logs.
+
+Tailscale Funnel serves the local port on the public internet. Keep `PBM_HOST=127.0.0.1` and turn Funnel on after the token is set. Funnel has to be enabled for the tailnet.
+
+```bash
+tailscale funnel --bg 8000
+```
+
+The public URL is `https://<node>.<tailnet>.ts.net/mcp`. Cursor client config:
+
+```json
+{
+  "mcpServers": {
+    "pbm": {
+      "url": "https://<node>.<tailnet>.ts.net/mcp",
+      "headers": {
+        "Authorization": "Bearer <PBM_MCP_BEARER_TOKEN>"
+      }
+    }
+  }
+}
+```
+
+`PBM_AUTH_MODE=forward` copies that same `Authorization` header onto upstream PBM calls. Use `bearer-env` or `api-key` for upstream credentials when the MCP token is the Funnel secret.
+
+A non-loopback `PBM_HOST` refuses to start until `PBM_MCP_BEARER_TOKEN` is set.
 
 ## Auth
 

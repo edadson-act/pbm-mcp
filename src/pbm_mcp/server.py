@@ -14,6 +14,11 @@ from pbm_mcp.config import ConfigError, Settings, get_settings
 from pbm_mcp.graphql_loader import find_operations, load_graphql_server
 from pbm_mcp.http import quiet_client_logs
 from pbm_mcp.introspection import find_introspection, operations_from_introspection
+from pbm_mcp.mcp_auth import (
+    build_mcp_auth,
+    ensure_reachable_bind,
+    inbound_authorization_is_forwarded,
+)
 from pbm_mcp.openapi_loader import find_openapi_spec, load_openapi_server
 
 logger = logging.getLogger("pbm_mcp")
@@ -28,10 +33,13 @@ def build_server(
     """Create the parent server.
 
     A domain with no spec is skipped. A spec with an empty allowlist is mounted
-    and exposes zero tools. ``mcp_auth`` is accepted so endpoint authentication
-    can be turned on later; v1 does not enable it.
+    and exposes zero tools. When ``mcp_auth`` is omitted, a non-empty
+    ``PBM_MCP_BEARER_TOKEN`` requires that bearer token on ``/mcp``.
     """
     settings = settings or get_settings()
+    if mcp_auth is None:
+        mcp_auth = build_mcp_auth(settings)
+    ensure_reachable_bind(settings, mcp_auth)
     quiet_client_logs()
     clients: list[httpx2.AsyncClient] = []
 
@@ -153,4 +161,21 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(name)s %(message)s")
     settings = get_settings()
     server = build_server(settings)
+    if settings.mcp_bearer_token.strip():
+        logger.info("mcp endpoint auth=bearer")
+        if inbound_authorization_is_forwarded(settings):
+            logger.warning(
+                "upstream auth mode forward copies the caller's Authorization "
+                "header onto PBM requests, so the MCP bearer token would be sent "
+                "upstream. Set PBM_AUTH_MODE to bearer-env or api-key for "
+                "upstream credentials."
+            )
+    else:
+        logger.warning(
+            "mcp endpoint auth=off host=%s port=%s. Set PBM_MCP_BEARER_TOKEN "
+            "before running tailscale funnel; Funnel publishes this port on "
+            "the public internet.",
+            settings.host,
+            settings.port,
+        )
     server.run(transport="http", host=settings.host, port=settings.port)
